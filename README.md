@@ -1,0 +1,4 @@
+blamo
+=====
+
+Ready, Aim, Blamo 
