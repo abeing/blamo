@@ -1,4 +1,8 @@
 #include <iostream>
+#include <time.h>
+#include <cassert>
+#include <vector>
+#include <stdlib.h>
 #include <SDL2/SDL.h>
 
 void logSdlError(std::ostream &os, const std::string &msg)
@@ -38,8 +42,40 @@ void putPixel(SDL_Surface *surface, int x, int y, Uint32 pixel)
   }
 }
 
+/**
+ * Unfairly toss a coin.
+ *
+ * @param trueProbability The chance of the unfair coin coming up true.
+ * @return true or false, with probability determined by trueProbability
+ */
+bool unfairCoin(double trueProbability) {
+  return (rand()/(double)RAND_MAX) < trueProbability;
+}
+
+/**
+ * Generates the battle field terrain. The terrain is a series heights, each no heigher than the maximumHeight.
+ *
+ * @param width the width of the terrain to generate; determines the length of the resulting vector.
+ * @param height the maximum height of any element of the curve
+ * @param variance the "jaggedness" of the curve
+ * @return a vector of terrain heights
+ */
+std::vector<int> generateTerrainCurve(unsigned width, unsigned maximumHeight, double variance)
+{
+  std::vector<int> curve;
+  int previousHeight = 200;
+  for (int i = 0; i < width; ++i) {
+    int bump = unfairCoin(0.5) ? 1 : (unfairCoin(0.5) ? 2 : 3);
+    int nextHeight = unfairCoin(variance) ? previousHeight + bump : previousHeight - bump;
+    curve.push_back(nextHeight);
+    previousHeight = nextHeight;
+  }
+  return curve;
+}
+
 int main(int argc, char **argv)
 {
+  srand(time(0));
   if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
     logSdlError(std::cerr, "SDL_Init");
     return 1;
@@ -64,7 +100,14 @@ int main(int argc, char **argv)
   Uint32 ground = SDL_MapRGB(field->format, 0, 255, 0);
 
   SDL_LockSurface(field);
-  putPixel(field, 10, 10, ground);
+  std::vector<int> curve = generateTerrainCurve(640, 480, 0.5);
+  assert(curve.size() == 640);
+  for (int i = 0; i < 640; ++i) {
+    for (int j = curve[i]; j < 480; j++) {
+      putPixel(field, i, j, ground);
+    }
+  }
+  // putPixel(field, 10, 10, ground);
   SDL_UnlockSurface(field);
 
   SDL_Texture *texture = nullptr;

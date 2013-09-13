@@ -1,7 +1,7 @@
 CXX = clang++
 SDL = -framework SDL2 -framework SDL2_image
 
-CXXFLAGS = -Wall -c -std=c++11
+CXXFLAGS = -g -O0 -Wall -c -std=c++11
 LDFLAGS = $(SDL)
 EXE = blamo
 
